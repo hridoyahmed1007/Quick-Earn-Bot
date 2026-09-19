@@ -22,72 +22,55 @@ export const AppStartupScreen: React.FC<AppStartupScreenProps> = ({ onComplete }
   const startTimeRef = useRef<number>(Date.now());
   const hasTriggeredCompleteRef = useRef<boolean>(false);
 
-  // Initialize and run the multi-step real & visual launch sequence
+  // Initialize and run a super-fast, responsive launch sequence (no 5s stall)
   const startLaunchSequence = async () => {
     setError(null);
     setPhase('welcome');
-    setProgress(15);
+    setProgress(35);
     startTimeRef.current = Date.now();
     hasTriggeredCompleteRef.current = false;
 
-    try {
-      // Step 1: 0.0s – 1.0s (Welcome & Logo Entrance)
-      await new Promise((res) => setTimeout(res, 1000));
-      setPhase('connecting');
-      setProgress(35);
-      triggerHaptic('light');
-
-      // Step 2: 1.0s – 2.0s (Backend connection & Telegram session validation)
-      // Real Telegram WebApp handshake / environment check
-      const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
-      if (tg) {
-        tg.ready?.();
-        tg.expand?.();
-      }
-      await new Promise((res) => setTimeout(res, 1000));
-      setPhase('verifying');
-      setProgress(65);
-      triggerHaptic('selection');
-
-      // Step 3: 2.0s – 3.0s (User/session verification & Account data initialization)
-      // Check local storage or warm up session caches safely
-      try {
-        const storedUser = localStorage.getItem('quickearn_user');
-        if (storedUser) {
-          // Pre-cache exists
-        }
-      } catch {
-        // Safe fallback
-      }
-      await new Promise((res) => setTimeout(res, 1000));
-      setPhase('preparing');
-      setProgress(88);
-      triggerHaptic('light');
-
-      // Step 4: 3.0s – 4.0s (Wallet data, home data, announcements)
-      await new Promise((res) => setTimeout(res, 1000));
-      setPhase('ready');
-      setProgress(100);
-      triggerHaptic('success');
-
-      // Step 5: 4.0s – 4.7s ("All set ✓" display before smooth transition)
-      await new Promise((res) => setTimeout(res, 750));
-
+    // Safety timeout: Maximum 700ms, then guaranteed to enter the app
+    const autoFinishTimer = setTimeout(() => {
       if (!hasTriggeredCompleteRef.current) {
         hasTriggeredCompleteRef.current = true;
         onComplete();
       }
+    }, 700);
+
+    try {
+      // Step 1: Fast Telegram WebApp handshake
+      const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
+      if (tg) {
+        try {
+          tg.ready?.();
+          tg.expand?.();
+        } catch {}
+      }
+
+      await new Promise((res) => setTimeout(res, 200));
+      setPhase('connecting');
+      setProgress(65);
+      triggerHaptic('light');
+
+      await new Promise((res) => setTimeout(res, 180));
+      setPhase('ready');
+      setProgress(100);
+      triggerHaptic('success');
+
+      await new Promise((res) => setTimeout(res, 150));
+
+      if (!hasTriggeredCompleteRef.current) {
+        hasTriggeredCompleteRef.current = true;
+        clearTimeout(autoFinishTimer);
+        onComplete();
+      }
     } catch (err: unknown) {
-      console.error('Startup initialization failed:', err);
-      const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
-      setError({
-        title: isOffline ? 'Connection problem' : 'Something went wrong',
-        message: isOffline
-          ? 'Please check your internet connection and retry.'
-          : 'Unable to initialize secure session. Please try again.',
-        isNetwork: isOffline,
-      });
-      triggerHaptic('error');
+      if (!hasTriggeredCompleteRef.current) {
+        hasTriggeredCompleteRef.current = true;
+        clearTimeout(autoFinishTimer);
+        onComplete();
+      }
     }
   };
 
@@ -124,8 +107,9 @@ export const AppStartupScreen: React.FC<AppStartupScreenProps> = ({ onComplete }
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-      transition={{ duration: 0.45, ease: 'easeInOut' }}
-      className="fixed inset-0 z-50 bg-[#0A0A0B] text-[#EDEDED] flex flex-col items-center justify-between p-6 select-none overflow-hidden"
+      transition={{ duration: 0.35, ease: 'easeInOut' }}
+      onClick={() => onComplete()}
+      className="fixed inset-0 z-50 bg-[#0A0A0B] text-[#EDEDED] flex flex-col items-center justify-between p-6 select-none overflow-hidden cursor-pointer"
     >
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#00E5FF]/10 rounded-full blur-3xl pointer-events-none" />
