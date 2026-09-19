@@ -13,7 +13,13 @@ export const HomeHeader: React.FC = () => {
   else if (hour < 18) timeGreeting = 'Good Afternoon';
   else timeGreeting = 'Good Evening';
 
-  const firstName = user.fullName.split(' ')[0] || 'Earner';
+  const [imgErr, setImgErr] = React.useState(false);
+  const cleanFullName = (user.fullName || '').trim();
+  const cleanUsername = (user.username || '').replace(/^@/, '').trim();
+  const firstName = cleanFullName
+    ? cleanFullName.split(' ')[0]
+    : (cleanUsername ? `@${cleanUsername}` : 'Earner');
+  const avatarLetter = (cleanFullName || cleanUsername || 'E').replace(/^@/, '').charAt(0).toUpperCase();
 
   return (
     <div className="space-y-2">
@@ -23,11 +29,21 @@ export const HomeHeader: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="relative cursor-pointer" onClick={() => navigateTo('profile')}>
             <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#00E5FF] via-teal-500 to-cyan-300 p-[2px] shadow-md shadow-[#00E5FF15]">
-              <img
-                src={user.avatarUrl}
-                alt={user.fullName}
-                className="w-full h-full rounded-full object-cover bg-[#161618]"
-              />
+              <div className="w-full h-full rounded-full overflow-hidden bg-[#161618] flex items-center justify-center">
+                {user.avatarUrl && !imgErr ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={cleanFullName || cleanUsername}
+                    onError={() => setImgErr(true)}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-tr from-[#2AABEE] to-[#00E5FF] flex items-center justify-center text-white font-extrabold text-sm select-none">
+                    {avatarLetter}
+                  </div>
+                )}
+              </div>
             </div>
             {user.isVerified && (
               <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#0A0A0B] text-[#00E5FF] flex items-center justify-center border border-[#1A1A1C]">

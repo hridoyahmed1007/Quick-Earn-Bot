@@ -1196,9 +1196,9 @@ const db: Record<string, UserDbRecord> = {};
 // Helper to create a fresh 0-balance user profile
 function createFreshUser(userId: string, username?: string, fullName?: string, avatarUrl?: string): UserDbRecord {
   const cleanId = userId || `tg_${Date.now()}`;
-  const cleanUsername = username || `user_${cleanId.slice(-6)}`;
-  const cleanName = fullName || 'Telegram Earner';
-  const cleanAvatar = avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120';
+  const cleanUsername = username || '';
+  const cleanName = fullName || '';
+  const cleanAvatar = avatarUrl || '';
   const referralCode = `BD${cleanId.replace(/\D/g, '').slice(-4) || '8821'}`;
 
   const user = {
@@ -1479,11 +1479,16 @@ function calculateRewardWithTierBonus(baseBdt: number, baseCoins: number, tier?:
 // Auth / Get or Create user
 function getOrCreateUser(req: express.Request): UserDbRecord {
   const userId = (req.headers['x-user-id'] as string) || (req.query.userId as string) || (req.body?.userId as string) || 'tg_primary_user';
+  const username = (req.headers['x-user-username'] as string) || req.body?.username;
+  const fullName = (req.headers['x-user-fullname'] as string) || req.body?.fullName;
+  const avatarUrl = (req.headers['x-user-avatar'] as string) || req.body?.avatarUrl;
+
   if (!db[userId]) {
-    const username = (req.headers['x-user-username'] as string) || req.body?.username;
-    const fullName = (req.headers['x-user-fullname'] as string) || req.body?.fullName;
-    const avatarUrl = (req.headers['x-user-avatar'] as string) || req.body?.avatarUrl;
     createFreshUser(userId, username, fullName, avatarUrl);
+  } else {
+    if (username !== undefined && username !== null) db[userId].user.username = username;
+    if (fullName !== undefined && fullName !== null) db[userId].user.fullName = fullName;
+    if (avatarUrl !== undefined && avatarUrl !== null) db[userId].user.avatarUrl = avatarUrl;
   }
   return db[userId];
 }
@@ -1678,6 +1683,99 @@ app.get('/api/catalog/all', (req, res) => {
     microJobs: globalMicroJobs.filter((j) => !j.archived).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)),
     channelTasks: globalChannelTasks.filter((t) => !t.archived).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)),
   });
+});
+
+// ==========================================
+// ADMIN AUTHENTICATION & CREDENTIALS
+// ==========================================
+
+interface AdminAuthData {
+  username: string;
+  password: string;
+  updatedAt: string;
+}
+
+// Initial Random Admin Credentials (can be changed from Admin Panel anytime)
+let globalAdminAuth: AdminAuthData = {
+  username: 'admin_quickearn',
+  password: 'EarnAdmin@2026#',
+  updatedAt: new Date().toISOString(),
+};
+
+// POST /api/admin/auth/login
+app.post('/api/admin/auth/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'ইউজারনেম এবং পাসওয়ার্ড প্রদান করুন।' });
+  }
+
+  if (username.trim() === globalAdminAuth.username && password === globalAdminAuth.password) {
+    const token = 'ADMIN_TOKEN_' + Buffer.from(`${globalAdminAuth.username}:${Date.now()}`).toString('base64');
+    logAdminAction('ADMIN_SECURITY', 'Admin Login Successful', 'general', 'AUTH', 'Admin Access', `Admin user '${globalAdminAuth.username}' authenticated successfully`);
+    return res.json({
+      success: true,
+      token,
+      username: globalAdminAuth.username,
+      updatedAt: globalAdminAuth.updatedAt,
+      message: 'অ্যাডমিন লগইন সফল হয়েছে!'
+    });
+  } else {
+    return res.status(401).json({
+      success: false,
+      error: 'ভুল ইউজারনেম অথবা পাসওয়ার্ড! সঠিক ক্রেডেনশিয়াল প্রদান করুন।'
+    });
+  }
+});
+
+// GET /api/admin/auth/status
+app.get('/api/admin/auth/status', (req, res) => {
+  res.json({
+    success: true,
+    username: globalAdminAuth.username,
+    updatedAt: globalAdminAuth.updatedAt,
+    isDefault: globalAdminAuth.username === 'admin_quickearn' && globalAdminAuth.password === 'EarnAdmin@2026#',
+    defaultHint: {
+      username: 'admin_quickearn',
+      password: 'EarnAdmin@2026#',
+    }
+  });
+});
+
+// POST /api/admin/auth/change-credentials
+app.post('/api/admin/auth/change-credentials', (req, res) => {
+  const { currentPassword, newUsername, newPassword } = req.body || {};
+  if (!currentPassword) {
+    return res.status(400).json({ success: false, error: 'বর্তমান পাসওয়ার্ড প্রদান করা আবশ্যক!' });
+  }
+  if (currentPassword !== globalAdminAuth.password) {
+    return res.status(400).json({ success: false, error: 'বর্তমান পাসওয়ার্ড সঠিক নয়!' });
+  }
+  if (!newUsername || newUsername.trim().length < 3) {
+    return res.status(400).json({ success: false, error: 'নতুন ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে।' });
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: 'নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।' });
+  }
+
+  const oldUsername = globalAdminAuth.username;
+  globalAdminAuth.username = newUsername.trim();
+  globalAdminAuth.password = newPassword;
+  globalAdminAuth.updatedAt = new Date().toISOString();
+
+  const newToken = 'ADMIN_TOKEN_' + Buffer.from(`${globalAdminAuth.username}:${Date.now()}`).toString('base64');
+  logAdminAction('ADMIN_SECURITY', 'Admin Credentials Updated', 'general', 'AUTH', 'Admin Access', `Credentials changed from '${oldUsername}' to '${globalAdminAuth.username}'`);
+
+  res.json({
+    success: true,
+    message: 'অ্যাডমিন ইউজারনেম ও পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!',
+    username: globalAdminAuth.username,
+    token: newToken,
+  });
+});
+
+// POST /api/admin/auth/logout
+app.post('/api/admin/auth/logout', (req, res) => {
+  res.json({ success: true, message: 'লগআউট সফল হয়েছে।' });
 });
 
 // ==========================================

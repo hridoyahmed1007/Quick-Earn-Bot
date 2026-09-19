@@ -841,62 +841,65 @@ export const WalletView: React.FC = () => {
       )}
 
       {/* ======================================================== */}
-      {/* 7. BOTTOM SECTION: SUPER PREMIUM WITHDRAW RULES CARD     */}
+      {/* 7. BOTTOM SECTION: MEDIUM-SIZED ULTRA-PREMIUM RULES CARD */}
       {/* ======================================================== */}
       <div 
         id="withdraw-rules-card"
-        className="p-4 rounded-[22px] bg-[#141416] border border-[#232328] shadow-xl space-y-3.5 relative overflow-hidden"
+        className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-b from-[#171722] via-[#121217] to-[#0E0E12] border border-[#262635] shadow-[0_6px_24px_rgba(0,0,0,0.5)] space-y-2.5 relative overflow-hidden"
       >
-        {/* Ambient Bottom Glow */}
-        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-[#00E5FF]/08 rounded-full blur-2xl pointer-events-none" />
+        {/* Ambient Top Glow Line & Radial Accents */}
+        <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/40 via-50% via-[#00E5FF]/40 to-transparent pointer-events-none" />
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-12 bg-[#00E5FF]/06 rounded-full blur-xl pointer-events-none" />
 
         {/* Rules Card Header */}
-        <div className="flex items-center justify-between border-b border-[#1F1F24] pb-2.5 relative z-10 gap-2">
+        <div className="flex items-center justify-between border-b border-[#22222E] pb-2 relative z-10 gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm">
+              <ShieldAlert className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-xs font-black text-white uppercase tracking-wider truncate">
-                উইথড্রর নিয়ম ও শর্তাবলী (WITHDRAWAL RULES)
+              <h3 className="text-xs font-black text-white uppercase tracking-wide truncate">
+                উইথড্রর নিয়ম ও শর্তাবলী
               </h3>
-              <p className="text-[10px] text-[#8E8E93] truncate">
-                টাকা উত্তোলনের জন্য নিচের শর্তগুলো প্রযোজ্য
+              <p className="text-[10px] text-[#9898A6] truncate">
+                টাকা উত্তোলনের শর্ত ও নীতিমালার বিবরণ
               </p>
             </div>
           </div>
-          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-bold border border-amber-500/20 whitespace-nowrap shrink-0">
-            Mandatory
+          <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 text-[9px] font-black border border-amber-500/30 uppercase tracking-wider whitespace-nowrap shrink-0">
+            MANDATORY
           </span>
         </div>
 
-        {/* Live Eligibility Meter */}
-        <div className="p-3 rounded-xl bg-[#0E0E10] border border-[#1F1F24] space-y-2.5 relative z-10">
-          <div className="flex items-center justify-between text-[11px] gap-2">
-            <span className="font-extrabold text-white min-w-0 truncate">
-              আপনার উইথড্র যোগ্যতা (Eligibility Progress):
+        {/* Live Eligibility Progress HUD (Medium & Balanced) */}
+        <div className="p-2.5 rounded-xl bg-[#0D0D12]/95 border border-[#22222E] space-y-2 relative z-10">
+          <div className="flex items-center justify-between text-xs gap-2">
+            <span className="font-bold text-white text-[11px] truncate">
+              আপনার উইথড্র যোগ্যতা (Eligibility):
             </span>
-            <span className={`font-black font-mono px-2 py-0.5 rounded-md text-[9px] uppercase whitespace-nowrap shrink-0 ${
+            <span className={`font-black font-mono px-2 py-0.5 rounded text-[9px] uppercase whitespace-nowrap shrink-0 border ${
               isFullyEligible 
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35'
+                : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
             }`}>
-              {isFullyEligible ? '🟢 উইথড্র যোগ্য (Eligible)' : '🟡 শর্ত পূরণ বাকি'}
+              {isFullyEligible ? '🟢 উইথড্র যোগ্য' : '🟡 শর্ত পূরণ বাকি'}
             </span>
           </div>
 
           {/* Condition 1: 900 BDT Balance */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-[10px] gap-2">
-              <span className="text-[#8E8E93] truncate">১. ব্যালেন্স শর্ত (মিনিমাম ৳৯০০):</span>
-              <span className={`font-mono font-bold whitespace-nowrap shrink-0 ${isBalanceEligible ? 'text-emerald-400' : 'text-amber-400'}`}>
-                ৳{user.bdtBalance.toFixed(2)} / ৳{MIN_WITHDRAW_BDT}.00 {isBalanceEligible ? '✓' : `(আরও ৳${Math.max(0, MIN_WITHDRAW_BDT - user.bdtBalance).toFixed(0)} বাকি)`}
+            <div className="flex items-center justify-between text-[10.5px] gap-2">
+              <span className="text-white font-medium">১. ব্যালেন্স (মিনিমাম ৳{MIN_WITHDRAW_BDT}):</span>
+              <span className={`font-mono font-bold whitespace-nowrap shrink-0 ${isBalanceEligible ? 'text-emerald-400' : 'text-amber-300'}`}>
+                ৳{user.bdtBalance.toFixed(2)} / ৳{MIN_WITHDRAW_BDT} {isBalanceEligible ? '✓' : `(আরও ৳${Math.max(0, MIN_WITHDRAW_BDT - user.bdtBalance).toFixed(0)} বাকি)`}
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#1A1A1E] overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#1C1C26] overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  isBalanceEligible ? 'bg-emerald-400' : 'bg-gradient-to-r from-amber-500 to-[#00E5FF]'
+                  isBalanceEligible 
+                    ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' 
+                    : 'bg-gradient-to-r from-amber-500 to-[#00E5FF]'
                 }`}
                 style={{ width: `${balanceProgress}%` }}
               />
@@ -905,16 +908,18 @@ export const WalletView: React.FC = () => {
 
           {/* Condition 2: 15 Referrals */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-[10px] gap-2">
-              <span className="text-[#8E8E93] truncate">২. রেফারেল শর্ত (মিনিমাম ১৫ জন):</span>
-              <span className={`font-mono font-bold whitespace-nowrap shrink-0 ${isReferralEligible ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {user.totalReferrals} / {MIN_REQUIRED_REFERRALS} Referrals {isReferralEligible ? '✓' : `(আরও ${Math.max(0, MIN_REQUIRED_REFERRALS - user.totalReferrals)}টি বাকি)`}
+            <div className="flex items-center justify-between text-[10.5px] gap-2">
+              <span className="text-white font-medium">২. রেফারেল (মিনিমাম {MIN_REQUIRED_REFERRALS} জন):</span>
+              <span className={`font-mono font-bold whitespace-nowrap shrink-0 ${isReferralEligible ? 'text-emerald-400' : 'text-purple-300'}`}>
+                {user.totalReferrals} / {MIN_REQUIRED_REFERRALS} জন {isReferralEligible ? '✓' : `(আরও ${Math.max(0, MIN_REQUIRED_REFERRALS - user.totalReferrals)}টি বাকি)`}
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#1A1A1E] overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#1C1C26] overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  isReferralEligible ? 'bg-emerald-400' : 'bg-gradient-to-r from-purple-500 to-[#00E5FF]'
+                  isReferralEligible 
+                    ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' 
+                    : 'bg-gradient-to-r from-purple-500 to-[#00E5FF]'
                 }`}
                 style={{ width: `${referralProgress}%` }}
               />
@@ -922,76 +927,76 @@ export const WalletView: React.FC = () => {
           </div>
         </div>
 
-        {/* 4 Essential Rules List */}
-        <div className="space-y-2 relative z-10 text-[11px]">
+        {/* 4 Essential Rules List - Medium Height & Crisp Readability */}
+        <div className="space-y-1.5 relative z-10">
           {/* Rule 1: 900 TK */}
-          <div className="p-2.5 rounded-xl bg-[#0E0E10] border border-[#1F1F24] flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-[#0F0F16]/90 border border-[#20202C] hover:border-emerald-500/30 transition-all flex items-start gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
               <Coins className="w-3.5 h-3.5" />
             </div>
-            <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-white leading-snug">সর্বনিম্ন উত্তোলন ৳৯০০.০০ টাকা</span>
-                <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">
+                <span className="text-[11.5px] font-extrabold text-white leading-tight">সর্বনিম্ন উত্তোলন ৳৯০০.০০ টাকা</span>
+                <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/25 whitespace-nowrap shrink-0">
                   Min ৳900
                 </span>
               </div>
-              <p className="text-[10px] text-[#8E8E93] leading-relaxed">
+              <p className="text-[10px] text-[#A2A2B2] leading-relaxed mt-0.5">
                 উইথড্র করার জন্য আপনার মেইন ব্যালেন্সে সর্বনিম্ন ৯০০ টাকা থাকতে হবে।
               </p>
             </div>
           </div>
 
           {/* Rule 2: 15 Referrals Must */}
-          <div className="p-2.5 rounded-xl bg-[#0E0E10] border border-[#1F1F24] flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-[#0F0F16]/90 border border-[#20202C] hover:border-purple-500/30 transition-all flex items-start gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center justify-center shrink-0 mt-0.5">
               <Users className="w-3.5 h-3.5" />
             </div>
-            <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-white leading-snug">সর্বনিম্ন ১৫টি রেফার অবশ্যই লাগবে</span>
-                <span className="text-[9px] font-mono font-bold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">
+                <span className="text-[11.5px] font-extrabold text-white leading-tight">সর্বনিম্ন ১৫টি রেফার অবশ্যই লাগবে</span>
+                <span className="text-[9px] font-mono font-bold text-purple-300 bg-purple-500/15 px-1.5 py-0.5 rounded border border-purple-500/25 whitespace-nowrap shrink-0">
                   15 Refer Must
                 </span>
               </div>
-              <p className="text-[10px] text-[#8E8E93] leading-relaxed">
+              <p className="text-[10px] text-[#A2A2B2] leading-relaxed mt-0.5">
                 টাকা তোলার জন্য আপনার অ্যাকাউন্টে সর্বনিম্ন ১৫ জন সক্রিয় রেফারেল থাকা বাধ্যতামূলক।
               </p>
             </div>
           </div>
 
           {/* Rule 3: Processing Time */}
-          <div className="p-2.5 rounded-xl bg-[#0E0E10] border border-[#1F1F24] flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-[#00E5FF]/10 text-[#00E5FF] flex items-center justify-center shrink-0 mt-0.5">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-[#0F0F16]/90 border border-[#20202C] hover:border-[#00E5FF]/30 transition-all flex items-start gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-[#00E5FF]/15 text-[#00E5FF] border border-[#00E5FF]/30 flex items-center justify-center shrink-0 mt-0.5">
               <Clock className="w-3.5 h-3.5" />
             </div>
-            <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-white leading-snug">পেমেন্ট পাঠানোর সময়সীমা</span>
-                <span className="text-[9px] font-mono font-bold text-[#00E5FF] bg-[#00E5FF]/10 px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">
+                <span className="text-[11.5px] font-extrabold text-white leading-tight">পেমেন্ট পাঠানোর সময়সীমা</span>
+                <span className="text-[9px] font-mono font-bold text-[#00E5FF] bg-[#00E5FF]/15 px-1.5 py-0.5 rounded border border-[#00E5FF]/25 whitespace-nowrap shrink-0">
                   1-24 Hours
                 </span>
               </div>
-              <p className="text-[10px] text-[#8E8E93] leading-relaxed">
-                উইথড্র রিকোয়েস্ট পাঠানোর ১ থেকে ২৪ ঘণ্টার মধ্যে বিকাশ, নগদ বা রকেট একাউন্টে টাকা যুক্ত হবে।
+              <p className="text-[10px] text-[#A2A2B2] leading-relaxed mt-0.5">
+                উইথড্র রিকোয়েস্ট পাঠানোর ১ থেকে ২৪ ঘণ্টার মধ্যে বিকাশ, নগদ বা রকেটে টাকা পৌঁছে যাবে।
               </p>
             </div>
           </div>
 
           {/* Rule 4: Security & Fake Account Warning */}
-          <div className="p-2.5 rounded-xl bg-[#1E1414] border border-rose-500/25 flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-[#1A1114]/95 border border-rose-500/25 hover:border-rose-500/40 transition-all flex items-start gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0 mt-0.5">
               <ShieldAlert className="w-3.5 h-3.5" />
             </div>
-            <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-rose-400 leading-snug">অ্যান্টি-ফ্রড ও ভিপিএন পলিসি</span>
-                <span className="text-[9px] font-mono font-bold text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">
+                <span className="text-[11.5px] font-extrabold text-rose-400 leading-tight">অ্যান্টি-ফ্রড ও ভিপিএন পলিসি</span>
+                <span className="text-[9px] font-mono font-bold text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded border border-rose-500/25 whitespace-nowrap shrink-0">
                   Strict
                 </span>
               </div>
-              <p className="text-[10px] text-[#8E8E93] leading-relaxed">
-                VPN/Proxy বা ফেক রেফারেল ব্যবহার করলে একাউন্ট স্থায়ীভাবে নিষিদ্ধ হবে এবং পেমেন্ট বাতিল হবে।
+              <p className="text-[10px] text-[#A2A2B2] leading-relaxed mt-0.5">
+                VPN/Proxy বা ফেক রেফারেল ব্যবহার করলে একাউন্ট স্থায়ীভাবে নিষিদ্ধ ও পেমেন্ট বাতিল হবে।
               </p>
             </div>
           </div>

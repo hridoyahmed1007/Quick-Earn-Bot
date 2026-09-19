@@ -201,33 +201,88 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+interface TelegramAuthResult {
+  userId: string;
+  username: string;
+  fullName: string;
+  avatarUrl: string;
+  isRealTelegram: boolean;
+}
+
 // Helper to extract Telegram WebApp user or default session
-const getTelegramUser = () => {
+const getTelegramUser = (): TelegramAuthResult => {
   if (typeof window !== 'undefined') {
     const tg = (window as any).Telegram?.WebApp;
     if (tg) {
       try {
-        tg.ready();
-        tg.expand();
+        tg.ready?.();
+        tg.expand?.();
       } catch (e) {
         // ignore
       }
-      const tgUser = tg.initDataUnsafe?.user;
-      if (tgUser) {
-        return {
-          userId: String(tgUser.id),
-          username: tgUser.username || `tg_${tgUser.id}`,
-          fullName: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Telegram Earner',
-          avatarUrl: tgUser.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-        };
-      }
+    }
+
+    let tgUser: any = tg?.initDataUnsafe?.user;
+
+    // Fallback 1: check tg.initData string
+    if (!tgUser && tg?.initData) {
+      try {
+        const params = new URLSearchParams(tg.initData);
+        const u = params.get('user');
+        if (u) tgUser = JSON.parse(u);
+      } catch (e) {}
+    }
+
+    // Fallback 2: check window.location.hash
+    if (!tgUser && window.location.hash) {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const tgWebAppData = hashParams.get('tgWebAppData');
+        if (tgWebAppData) {
+          const subParams = new URLSearchParams(tgWebAppData);
+          const u = subParams.get('user');
+          if (u) tgUser = JSON.parse(u);
+        }
+      } catch (e) {}
+    }
+
+    // Fallback 3: check window.location.search
+    if (!tgUser && window.location.search) {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const tgWebAppData = searchParams.get('tgWebAppData');
+        if (tgWebAppData) {
+          const subParams = new URLSearchParams(tgWebAppData);
+          const u = subParams.get('user');
+          if (u) tgUser = JSON.parse(u);
+        }
+      } catch (e) {}
+    }
+
+    if (tgUser && (tgUser.id || tgUser.first_name || tgUser.username)) {
+      const first = (tgUser.first_name || '').trim();
+      const last = (tgUser.last_name || '').trim();
+      const fullName = [first, last].filter(Boolean).join(' ').trim();
+      const username = (tgUser.username || '').replace(/^@/, '').trim();
+      const avatarUrl = tgUser.photo_url || '';
+
+      return {
+        userId: String(tgUser.id || `tg_${username || 'user'}`),
+        username,
+        fullName,
+        avatarUrl,
+        isRealTelegram: true,
+      };
     }
   }
+
+  // Clean fallback when opened in desktop browser / preview mode
   return {
-    userId: 'usr_live_001',
-    username: 'bd_earner_007',
-    fullName: 'Arif Hossain',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+    userId: 'usr_guest_001',
+    username: '',
+    fullName: '',
+    avatarUrl: '',
+    isRealTelegram: false,
   };
 };
 
@@ -276,8 +331,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [language, setLanguageState] = useState<LanguageMode>('mixed');
   const [theme, setThemeState] = useState<ThemePreset>('emerald');
 
-  const [user, setUser] = useState<UserProfile>(
-    initialBundle?.user || {
+  const [user, setUser] = useState<UserProfile>(() => {
+    // If local storage has an existing bundle
+    if (initialBundle?.user) {
+      // If we have real Telegram info from WebApp, always overwrite identity with real Telegram identity!
+      if (authInfo.isRealTelegram) {
+        return {
+          ...initialBundle.user,
+          telegramId: authInfo.userId,
+          fullName: authInfo.fullName || initialBundle.user.fullName || '',
+          username: authInfo.username || initialBundle.user.username || '',
+          avatarUrl: authInfo.avatarUrl || initialBundle.user.avatarUrl || '',
+        };
+      }
+      return initialBundle.user;
+    }
+
+    return {
       telegramId: authInfo.userId,
       username: authInfo.username,
       fullName: authInfo.fullName,
@@ -299,8 +369,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       completedAds: 68,
       completedMicroJobs: 12,
       completedChannelTasks: 6,
-    }
-  );
+    };
+  });
 
   const [adProviders, setAdProviders] = useState<AdProvider[]>(initialBundle?.adProviders || MOCK_AD_PROVIDERS);
   const [microJobs, setMicroJobs] = useState<MicroJob[]>(initialBundle?.microJobs || MOCK_MICRO_JOBS);
@@ -635,22 +705,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     storageKey,
   ]);
 
+  // Active sync with Telegram WebApp SDK when client hydrates
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const syncWithTelegram = () => {
+      const liveTg = getTelegramUser();
+      if (liveTg.isRealTelegram) {
+        setUser((prev) => {
+          const isDiff =
+            prev.telegramId !== liveTg.userId ||
+            prev.fullName !== liveTg.fullName ||
+            prev.username !== liveTg.username ||
+            prev.avatarUrl !== liveTg.avatarUrl;
+
+          if (isDiff) {
+            return {
+              ...prev,
+              telegramId: liveTg.userId,
+              fullName: liveTg.fullName,
+              username: liveTg.username,
+              avatarUrl: liveTg.avatarUrl,
+            };
+          }
+          return prev;
+        });
+      }
+    };
+
+    syncWithTelegram();
+    const t1 = setTimeout(syncWithTelegram, 250);
+    const t2 = setTimeout(syncWithTelegram, 1000);
+    const t3 = setTimeout(syncWithTelegram, 2500);
+
+    window.addEventListener('message', syncWithTelegram);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      window.removeEventListener('message', syncWithTelegram);
+    };
+  }, []);
+
   // Server sync on mount
   useEffect(() => {
     const fetchServerState = async () => {
       try {
+        const liveAuth = getTelegramUser();
+        const activeUserId = liveAuth.isRealTelegram ? liveAuth.userId : authInfo.userId;
+        const activeUsername = liveAuth.isRealTelegram ? liveAuth.username : authInfo.username;
+        const activeFullName = liveAuth.isRealTelegram ? liveAuth.fullName : authInfo.fullName;
+        const activeAvatar = liveAuth.isRealTelegram ? liveAuth.avatarUrl : authInfo.avatarUrl;
+
         const res = await fetch('/api/user/me', {
           headers: {
-            'x-user-id': authInfo.userId,
-            'x-user-username': authInfo.username,
-            'x-user-fullname': authInfo.fullName,
-            'x-user-avatar': authInfo.avatarUrl,
+            'x-user-id': activeUserId,
+            'x-user-username': activeUsername,
+            'x-user-fullname': activeFullName,
+            'x-user-avatar': activeAvatar,
           },
         });
         if (res.ok) {
           const data = await res.json();
           if (data.user) {
-            setUser((prev) => ({ ...prev, ...data.user }));
+            setUser((prev) => {
+              const hasRealTg = liveAuth.isRealTelegram || authInfo.isRealTelegram;
+              return {
+                ...prev,
+                ...data.user,
+                fullName: hasRealTg ? (liveAuth.fullName || authInfo.fullName || prev.fullName) : (data.user.fullName || prev.fullName),
+                username: hasRealTg ? (liveAuth.username || authInfo.username || prev.username) : (data.user.username || prev.username),
+                avatarUrl: hasRealTg ? (liveAuth.avatarUrl || authInfo.avatarUrl || prev.avatarUrl) : (data.user.avatarUrl || prev.avatarUrl),
+                telegramId: hasRealTg ? (liveAuth.userId || authInfo.userId) : (data.user.telegramId || prev.telegramId),
+              };
+            });
             if (data.dailyBonus) setDailyBonus(data.dailyBonus);
             if (data.achievements) setAchievements(data.achievements);
             if (data.adProviders && data.adProviders.length > 0) setAdProviders(data.adProviders);

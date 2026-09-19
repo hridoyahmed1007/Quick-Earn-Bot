@@ -86,10 +86,16 @@ export const LeaderboardView: React.FC = () => {
     );
   });
 
+  const [userAvatarErr, setUserAvatarErr] = useState(false);
+  const cleanUserFullName = (user.fullName || '').trim();
+  const cleanUserUsername = (user.username || '').replace(/^@/, '').trim();
+  const userDisplayName = cleanUserFullName || (cleanUserUsername ? `@${cleanUserUsername}` : 'You');
+  const userAvatarInitial = userDisplayName.replace(/^@/, '').charAt(0).toUpperCase() || 'U';
+
   const currentUserEntry = allEntries.find((e) => e.isCurrentUser) || {
     rank: 27,
-    displayName: user.fullName,
-    username: user.username,
+    displayName: userDisplayName,
+    username: cleanUserUsername,
     avatar: user.avatarUrl,
     amountBdt: 42.50,
     referralCount: 3,
@@ -577,11 +583,21 @@ export const LeaderboardView: React.FC = () => {
           {/* User Info & Current Rank */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="relative shrink-0">
-              <img
-                src={user.avatarUrl}
-                alt={user.fullName}
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-[#00E5FF]"
-              />
+              <div className="w-10 h-10 rounded-full overflow-hidden object-cover ring-2 ring-[#00E5FF] bg-[#161618] flex items-center justify-center">
+                {user.avatarUrl && !userAvatarErr ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={userDisplayName}
+                    onError={() => setUserAvatarErr(true)}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-tr from-[#2AABEE] to-[#00E5FF] flex items-center justify-center text-white font-black text-xs select-none">
+                    {userAvatarInitial}
+                  </div>
+                )}
+              </div>
               <span className="absolute -bottom-1 -right-1 px-1 py-0.2 bg-[#00E5FF] text-[#0A0A0B] text-[8px] font-black rounded-full border border-black">
                 YOU
               </span>
@@ -590,7 +606,7 @@ export const LeaderboardView: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-black text-white truncate max-w-[120px]">
-                  {user.fullName}
+                  {userDisplayName}
                 </span>
                 <span className="text-[10px] font-extrabold text-[#00E5FF] bg-[#00E5FF18] px-2 py-0.5 rounded-full border border-[#00E5FF40]">
                   #{currentUserEntry.rank}

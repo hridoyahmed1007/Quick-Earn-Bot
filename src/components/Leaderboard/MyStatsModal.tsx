@@ -63,6 +63,12 @@ export const MyStatsModal: React.FC<MyStatsModalProps> = ({ onClose }) => {
     date: a.unlockedAt || 'In progress',
   }));
 
+  const [imgErr, setImgErr] = React.useState(false);
+  const cleanFullName = (user.fullName || '').trim();
+  const cleanUsername = (user.username || '').replace(/^@/, '').trim();
+  const displayName = cleanFullName || (cleanUsername ? `@${cleanUsername}` : 'You');
+  const avatarLetter = displayName.replace(/^@/, '').charAt(0).toUpperCase() || 'U';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <motion.div
@@ -74,20 +80,30 @@ export const MyStatsModal: React.FC<MyStatsModalProps> = ({ onClose }) => {
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-[#232326] pb-3">
           <div className="flex items-center gap-3">
-            <img
-              src={user.avatarUrl}
-              alt={user.fullName}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-[#00E5FF]"
-            />
+            <div className="w-10 h-10 rounded-full overflow-hidden object-cover ring-2 ring-[#00E5FF] bg-[#161618] flex items-center justify-center shrink-0">
+              {user.avatarUrl && !imgErr ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  onError={() => setImgErr(true)}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-tr from-[#2AABEE] to-[#00E5FF] flex items-center justify-center text-white font-black text-sm select-none">
+                  {avatarLetter}
+                </div>
+              )}
+            </div>
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <span>{user.fullName}</span>
+                <span>{displayName}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00E5FF15] text-[#00E5FF] font-extrabold border border-[#00E5FF20]">
                   #27 RANK
                 </span>
               </h3>
               <p className="text-[10px] text-[#8E8E93]">
-                @{user.username} • {language === 'bn' ? 'ব্যক্তিগত পারফরম্যান্স ও পরিসংখ্যান' : 'Personal Performance Statistics'}
+                {cleanUsername ? `@${cleanUsername} • ` : ''}{language === 'bn' ? 'ব্যক্তিগত পারফরম্যান্স ও পরিসংখ্যান' : 'Personal Performance Statistics'}
               </p>
             </div>
           </div>

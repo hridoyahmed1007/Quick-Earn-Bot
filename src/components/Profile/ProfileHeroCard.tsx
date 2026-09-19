@@ -8,6 +8,18 @@ export const ProfileHeroCard: React.FC = () => {
   const isBn = language === 'bn' || language === 'mixed';
   const style = getTierStyleConfig(profileLevel.tier);
   const totalEarnedBdt = Number((user.bdtBalance + user.totalCashoutBdt).toFixed(2));
+  const [imgError, setImgError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [user.avatarUrl]);
+
+  const cleanFullName = (user.fullName || '').trim();
+  const cleanUsername = (user.username || '').replace(/^@/, '').trim();
+  const hasFullName = Boolean(cleanFullName && cleanFullName.toLowerCase() !== cleanUsername.toLowerCase());
+  const hasUsername = Boolean(cleanUsername);
+  const displayName = hasFullName ? cleanFullName : (hasUsername ? `@${cleanUsername}` : 'User');
+  const avatarInitial = (displayName.replace(/^@/, '').trim().charAt(0) || 'U').toUpperCase();
 
   return (
     <div id="profile-hero-card" className="p-3.5 sm:p-4 rounded-[24px] bg-gradient-to-b from-[#18181D] via-[#141417] to-[#101012] border border-[#27272D] shadow-xl space-y-3.5 relative overflow-hidden transition-all duration-300">
@@ -32,17 +44,18 @@ export const ProfileHeroCard: React.FC = () => {
             className={`w-15 h-15 rounded-2xl p-[2.5px] transition-all duration-500 bg-gradient-to-br ${style.avatarGradientBg} ${style.avatarRingClass}`}
           >
             <div className="w-full h-full rounded-[13px] bg-[#0E0E10] flex items-center justify-center overflow-hidden relative border border-black/40">
-              {user.avatarUrl ? (
+              {user.avatarUrl && !imgError ? (
                 <img
                   src={user.avatarUrl}
-                  alt={user.fullName || user.username}
+                  alt={displayName}
+                  onError={() => setImgError(true)}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <span className="text-xl font-black text-white">
-                  {(user.fullName || user.username || 'U').charAt(0).toUpperCase()}
-                </span>
+                <div className="w-full h-full bg-gradient-to-tr from-[#2AABEE] to-[#00E5FF] flex items-center justify-center text-xl font-black text-white select-none shadow-inner">
+                  {avatarInitial}
+                </div>
               )}
             </div>
           </div>
@@ -57,7 +70,7 @@ export const ProfileHeroCard: React.FC = () => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <h1 className="text-sm font-extrabold text-white truncate max-w-[160px]">
-              {user.fullName || user.username}
+              {displayName}
             </h1>
             {/* Dynamic Profile Level Badge */}
             <span
@@ -67,9 +80,11 @@ export const ProfileHeroCard: React.FC = () => {
             </span>
           </div>
 
-          <p className="text-xs text-[#8E8E93] font-mono mt-0.5 truncate">
-            @{user.username || 'telegram_user'}
-          </p>
+          {hasFullName && hasUsername && (
+            <p className="text-xs text-[#8E8E93] font-mono mt-0.5 truncate">
+              @{cleanUsername}
+            </p>
+          )}
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">

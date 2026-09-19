@@ -28,6 +28,9 @@ import {
   RefreshCw,
   Zap,
   Send,
+  User,
+  KeyRound,
+  LogOut,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AdProvider, MicroJob, ChannelTask } from '../../types';
@@ -36,6 +39,8 @@ import { AdminWalletSection } from '../Admin/AdminWalletSection';
 import { AdminProfileSection } from '../Admin/AdminProfileSection';
 import { AdminDailyBonusSection } from '../Admin/AdminDailyBonusSection';
 import { TelegramOfficialLogo } from '../Common/TelegramOfficialLogo';
+import { AdminLoginView } from '../Admin/AdminLoginView';
+import { AdminCredentialsModal } from '../Admin/AdminCredentialsModal';
 
 export const AdminPageView: React.FC = () => {
   const {
@@ -72,6 +77,26 @@ export const AdminPageView: React.FC = () => {
 
   const isBn = language === 'bn';
 
+  // Admin Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+      sessionStorage.getItem('quickearn_admin_token') ||
+      localStorage.getItem('quickearn_admin_token')
+    );
+  });
+
+  const [adminUsername, setAdminUsername] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'admin_quickearn';
+    return (
+      sessionStorage.getItem('quickearn_admin_username') ||
+      localStorage.getItem('quickearn_admin_username') ||
+      'admin_quickearn'
+    );
+  });
+
+  const [isCredsModalOpen, setIsCredsModalOpen] = useState(false);
+
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'inactive' | 'archived'>('all');
@@ -93,6 +118,54 @@ export const AdminPageView: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleLoginSuccess = (user: string, token: string) => {
+    setIsAuthenticated(true);
+    setAdminUsername(user);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('quickearn_admin_token', token);
+      sessionStorage.setItem('quickearn_admin_username', user);
+      localStorage.setItem('quickearn_admin_token', token);
+      localStorage.setItem('quickearn_admin_username', user);
+    }
+    showToast(
+      isBn ? 'স্বাগতম অ্যাডমিন!' : 'Welcome Admin!',
+      isBn ? 'অ্যাডমিন কন্ট্রোল প্যানেল আনলক হয়েছে।' : 'Admin panel access granted.',
+      'success'
+    );
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('quickearn_admin_token');
+      sessionStorage.removeItem('quickearn_admin_username');
+      localStorage.removeItem('quickearn_admin_token');
+      localStorage.removeItem('quickearn_admin_username');
+    }
+    showToast(
+      isBn ? 'লগআউট সম্পন্ন' : 'Logged out',
+      isBn ? 'আপনি অ্যাডমিন সেশন থেকে বের হয়েছেন।' : 'Admin session closed.',
+      'info'
+    );
+  };
+
+  const handleOpenSite = () => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', '/');
+    }
+    navigateTo('home');
+  };
+
+  // If not authenticated, display the secure AdminLoginView
+  if (!isAuthenticated) {
+    return (
+      <AdminLoginView
+        onLoginSuccess={handleLoginSuccess}
+        onExit={handleOpenSite}
+      />
+    );
+  }
+
   const handleRefreshAuditLogs = async () => {
     setIsRefreshingLogs(true);
     try {
@@ -101,13 +174,6 @@ export const AdminPageView: React.FC = () => {
     } finally {
       setIsRefreshingLogs(false);
     }
-  };
-
-  const handleOpenSite = () => {
-    if (typeof window !== 'undefined') {
-      window.history.pushState(null, '', '/');
-    }
-    navigateTo('home');
   };
 
   // Reordering Helpers
@@ -199,6 +265,35 @@ export const AdminPageView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Admin User Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1A1A1E] border border-[#2A2A30] text-xs font-mono text-[#00E5FF]">
+              <User className="w-3.5 h-3.5" />
+              <span className="font-semibold">{adminUsername}</span>
+            </div>
+
+            {/* Change Password & Username Button */}
+            <button
+              id="admin_change_creds_btn"
+              onClick={() => setIsCredsModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1E1E22] hover:bg-[#2A2A2E] text-xs font-bold text-[#EDEDED] hover:text-white transition-all border border-[#2F2F36] shadow-sm"
+              title="Change Admin Password & Username"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">পাসওয়ার্ড পরিবর্তন</span>
+            </button>
+
+            {/* Logout Button */}
+            <button
+              id="admin_logout_btn"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-400 border border-rose-500/25 transition-all shadow-sm"
+              title="Logout Admin"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">লগআউট</span>
+            </button>
+
+            {/* Go to User Site */}
             <button
               id="admin_back_to_site_btn"
               onClick={handleOpenSite}
@@ -1665,6 +1760,21 @@ export const AdminPageView: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Admin Credentials Modal (Change Username/Password) */}
+      <AdminCredentialsModal
+        isOpen={isCredsModalOpen}
+        onClose={() => setIsCredsModalOpen(false)}
+        currentAdminUsername={adminUsername}
+        onCredentialsChanged={(newUsername) => {
+          setAdminUsername(newUsername);
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('quickearn_admin_username', newUsername);
+            localStorage.setItem('quickearn_admin_username', newUsername);
+          }
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 };

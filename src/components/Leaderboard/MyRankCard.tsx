@@ -31,16 +31,32 @@ export const MyRankCard: React.FC<MyRankCardProps> = ({
     }
   };
 
+  const [imgErr, setImgErr] = React.useState(false);
+  const cleanFullName = (user.fullName || '').trim();
+  const cleanUsername = (user.username || '').replace(/^@/, '').trim();
+  const displayName = cleanFullName || (cleanUsername ? `@${cleanUsername}` : 'You');
+  const avatarLetter = displayName.replace(/^@/, '').charAt(0).toUpperCase() || 'Y';
+
   return (
     <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#00E5FF18] via-[#121215] to-[#121215] border border-[#00E5FF50] shadow-2xl glow-cyan space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="relative shrink-0">
-            <img
-              src={user.avatarUrl}
-              alt={user.fullName}
-              className="w-11 h-11 rounded-full object-cover ring-2 ring-[#00E5FF]"
-            />
+            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-[#00E5FF] bg-[#161618] flex items-center justify-center">
+              {user.avatarUrl && !imgErr ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  onError={() => setImgErr(true)}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-tr from-[#2AABEE] to-[#00E5FF] flex items-center justify-center text-white font-black text-sm select-none">
+                  {avatarLetter}
+                </div>
+              )}
+            </div>
             <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 bg-[#00E5FF] text-[#0A0A0B] text-[8px] font-black rounded-full border border-black">
               YOU
             </span>
@@ -48,7 +64,7 @@ export const MyRankCard: React.FC<MyRankCardProps> = ({
 
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-white">{user.fullName}</span>
+              <span className="text-xs font-black text-white">{displayName}</span>
               <span className="text-[10px] font-extrabold text-[#00E5FF] bg-[#00E5FF15] px-2 py-0.5 rounded-full border border-[#00E5FF30]">
                 #{userRank}
               </span>
