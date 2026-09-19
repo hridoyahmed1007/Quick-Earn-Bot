@@ -1,0 +1,6 @@
+{
+  "name": "Quick Earn",
+  "description": "Premium Bangladesh Telegram Mini App for Ads, Micro Jobs, Referrals, and Earnings with bKash and Nagad Withdrawals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
