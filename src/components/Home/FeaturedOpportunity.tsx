@@ -7,7 +7,7 @@ export const FeaturedOpportunity: React.FC = () => {
   const { channelTasks, microJobs, openEarningTab } = useApp();
 
   // Find a high paying featured opportunity
-  const featuredTask = channelTasks.find((t) => !t.isJoined) || microJobs.find((j) => !j.isSubmitted);
+  const featuredTask = (channelTasks || []).find((t) => t.status !== 'completed') || (microJobs || []).find((j) => j.status !== 'completed' && !j.submittedAt);
 
   if (!featuredTask) return null;
 

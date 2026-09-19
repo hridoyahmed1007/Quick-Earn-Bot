@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'motion/react';
 import { AppProvider, useApp } from './context/AppContext';
-import { AppStartupScreen } from './components/AppStartupScreen';
 import { TopHeader } from './components/Navigation/TopHeader';
 import { BottomNav } from './components/Navigation/BottomNav';
 import { PageTransition } from './components/Navigation/PageTransition';
@@ -33,8 +31,7 @@ import { TermsPrivacyView } from './components/Views/SubViews/TermsPrivacyView';
 
 const MainAppContent: React.FC = () => {
   const { currentRoute, theme } = useApp();
-  const [isAppStarting, setIsAppStarting] = useState<boolean>(true);
-  const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(true);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(false);
   const isLight = theme === 'light';
 
   useEffect(() => {
@@ -49,92 +46,82 @@ const MainAppContent: React.FC = () => {
 
   return (
     <>
-      <AnimatePresence>
-        {isAppStarting && (
-          <AppStartupScreen onComplete={() => setIsAppStarting(false)} />
-        )}
-      </AnimatePresence>
-
-      {!isAppStarting && (
+      {/* Standalone Full-Page Admin Control (/admin) */}
+      {currentRoute === 'admin' ? (
         <>
-          {/* Standalone Full-Page Admin Control (/admin) */}
-          {currentRoute === 'admin' ? (
-            <>
-              <AdminPageView />
-              <NotificationToast />
-            </>
-          ) : currentRoute === 'leaderboard' ? (
-            <div className={`min-h-screen ${isLight ? 'bg-[#F4F6F9] text-[#0F172A]' : 'bg-[#0A0A0B] text-[#EDEDED]'} flex flex-col font-sans selection:bg-[#00E5FF] selection:text-[#0A0A0B]`}>
-              <main className="flex-1 w-full max-w-lg mx-auto">
-                <PageTransition routeKey="leaderboard">
-                  <LeaderboardView />
-                </PageTransition>
-              </main>
-              <AdPlayerModal />
-              <TaskProofModal />
-              <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
-              <NotificationToast />
-            </div>
-          ) : (
-            <div className={`min-h-screen ${isLight ? 'bg-[#F4F6F9] text-[#0F172A]' : 'bg-[#0A0A0B] text-[#EDEDED]'} flex flex-col font-sans selection:bg-[#00E5FF] selection:text-[#0A0A0B]`}>
-              {/* Top App Header */}
-              <TopHeader />
-
-              {/* Dynamic View Body Container */}
-              <main className="flex-1 w-full max-w-lg mx-auto px-4 pt-3">
-                <PageTransition routeKey={currentRoute}>
-                  {(() => {
-                    switch (currentRoute) {
-                      case 'home':
-                        return <HomeView />;
-                      case 'ads':
-                        return <AdsView />;
-                      case 'referral':
-                        return <ReferralView />;
-                      case 'wallet':
-                      case 'withdraw':
-                        return <WalletView />;
-                      case 'profile':
-                        return <ProfileView />;
-                      case 'tasks':
-                        return <TasksView />;
-                      case 'bonus':
-                        return <DailyBonusView />;
-                      case 'transactions':
-                        return <TransactionsView />;
-                      case 'my-referrals':
-                        return <MyReferralsView />;
-                      case 'achievements':
-                        return <AchievementsView />;
-                      case 'notifications':
-                        return <NotificationsView />;
-                      case 'settings':
-                        return <SettingsView />;
-                      case 'help':
-                        return <HelpView />;
-                      case 'terms':
-                      case 'privacy':
-                        return <TermsPrivacyView />;
-                      case 'leaderboard':
-                        return <LeaderboardView />;
-                      default:
-                        return <HomeView />;
-                    }
-                  })()}
-                </PageTransition>
-              </main>
-
-              {/* Floating Bottom Bar Navigation */}
-              <BottomNav />
-
-              {/* Overlays & Modals */}
-              <AdPlayerModal />
-              <TaskProofModal />
-              <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
-              <NotificationToast />
-            </div>
-          )}
+          <AdminPageView />
+          <NotificationToast />
         </>
+      ) : currentRoute === 'leaderboard' ? (
+        <div className={`min-h-screen ${isLight ? 'bg-[#F4F6F9] text-[#0F172A]' : 'bg-[#0A0A0B] text-[#EDEDED]'} flex flex-col font-sans selection:bg-[#00E5FF] selection:text-[#0A0A0B]`}>
+          <main className="flex-1 w-full max-w-lg mx-auto">
+            <PageTransition routeKey="leaderboard">
+              <LeaderboardView />
+            </PageTransition>
+          </main>
+          <AdPlayerModal />
+          <TaskProofModal />
+          <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
+          <NotificationToast />
+        </div>
+      ) : (
+        <div className={`min-h-screen ${isLight ? 'bg-[#F4F6F9] text-[#0F172A]' : 'bg-[#0A0A0B] text-[#EDEDED]'} flex flex-col font-sans selection:bg-[#00E5FF] selection:text-[#0A0A0B]`}>
+          {/* Top App Header */}
+          <TopHeader />
+
+          {/* Dynamic View Body Container */}
+          <main className="flex-1 w-full max-w-lg mx-auto px-4 pt-3">
+            <PageTransition routeKey={currentRoute}>
+              {(() => {
+                switch (currentRoute) {
+                  case 'home':
+                    return <HomeView />;
+                  case 'ads':
+                    return <AdsView />;
+                  case 'referral':
+                    return <ReferralView />;
+                  case 'wallet':
+                  case 'withdraw':
+                    return <WalletView />;
+                  case 'profile':
+                    return <ProfileView />;
+                  case 'tasks':
+                    return <TasksView />;
+                  case 'bonus':
+                    return <DailyBonusView />;
+                  case 'transactions':
+                    return <TransactionsView />;
+                  case 'my-referrals':
+                    return <MyReferralsView />;
+                  case 'achievements':
+                    return <AchievementsView />;
+                  case 'notifications':
+                    return <NotificationsView />;
+                  case 'settings':
+                    return <SettingsView />;
+                  case 'help':
+                    return <HelpView />;
+                  case 'terms':
+                  case 'privacy':
+                    return <TermsPrivacyView />;
+                  case 'leaderboard':
+                    return <LeaderboardView />;
+                  default:
+                    return <HomeView />;
+                }
+              })()}
+            </PageTransition>
+          </main>
+
+          {/* Floating Bottom Bar Navigation */}
+          <BottomNav />
+
+          {/* Overlays & Modals */}
+          <AdPlayerModal />
+          <TaskProofModal />
+          <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
+          <NotificationToast />
+        </div>
       )}
     </>
   );

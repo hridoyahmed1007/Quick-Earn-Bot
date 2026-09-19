@@ -14,13 +14,16 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
 
   if (!isOpen) return null;
 
+  const safeDailyBonus = Array.isArray(dailyBonus) ? dailyBonus : [];
+  const safeAdProviders = Array.isArray(adProviders) ? adProviders : [];
+
   // Derive dynamic real values from current application configuration
-  const currentClaimable = dailyBonus.find((d) => d.isCurrentDay && !d.isClaimed);
-  const nextBonusAmount = currentClaimable?.rewardBdt ?? dailyBonus[0]?.rewardBdt ?? 2.0;
+  const currentClaimable = safeDailyBonus.find((d) => d.isCurrentDay && !d.isClaimed);
+  const nextBonusAmount = currentClaimable?.rewardBdt ?? safeDailyBonus[0]?.rewardBdt ?? 2.0;
   
   // Calculate highest ad reward from configured ad networks
-  const maxAdReward = adProviders.length > 0 
-    ? Math.max(...adProviders.map((a) => a.rewardBdt)) 
+  const maxAdReward = safeAdProviders.length > 0 
+    ? Math.max(...safeAdProviders.map((a) => a.rewardBdt)) 
     : 3.0;
 
   // Active referral commission rule from admin settings

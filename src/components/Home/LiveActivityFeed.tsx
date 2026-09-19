@@ -24,13 +24,13 @@ export const LiveActivityFeed: React.FC = () => {
   const { withdrawalRecords } = useApp();
 
   // Combine real user completed/pending withdrawals with verified platform records
-  const realUserWithdrawals: VerifiedWithdrawalEvent[] = withdrawalRecords.map((rec) => ({
+  const realUserWithdrawals: VerifiedWithdrawalEvent[] = (withdrawalRecords || []).map((rec) => ({
     id: rec.id,
     userName: 'You (Self)',
     amountBdt: rec.amountBdt,
-    paymentMethod: rec.paymentMethod,
+    paymentMethod: rec.method || 'bKash',
     maskedAccount: rec.accountNumber ? `${rec.accountNumber.slice(0, 2)}******${rec.accountNumber.slice(-3)}` : '01******000',
-    relativeTime: rec.timestamp || 'Just now',
+    relativeTime: rec.requestedAt || 'Just now',
   }));
 
   const allEvents = [...realUserWithdrawals, ...VERIFIED_RECENT_WITHDRAWALS];
