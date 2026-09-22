@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { AppProvider, useApp } from './context/AppContext';
+import { AppStartupScreen } from './components/AppStartupScreen';
 import { TopHeader } from './components/Navigation/TopHeader';
 import { BottomNav } from './components/Navigation/BottomNav';
 import { PageTransition } from './components/Navigation/PageTransition';
@@ -32,6 +34,12 @@ import { TermsPrivacyView } from './components/Views/SubViews/TermsPrivacyView';
 const MainAppContent: React.FC = () => {
   const { currentRoute, theme } = useApp();
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(false);
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      return false;
+    }
+    return true;
+  });
   const isLight = theme === 'light';
 
   useEffect(() => {
@@ -46,6 +54,18 @@ const MainAppContent: React.FC = () => {
 
   return (
     <>
+      {/* Telegram Mini App Startup & Loading Screen */}
+      <AnimatePresence mode="wait">
+        {isAppLoading && (
+          <AppStartupScreen
+            onComplete={() => {
+              setIsAppLoading(false);
+              setIsWelcomeOpen(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Standalone Full-Page Admin Control (/admin) */}
       {currentRoute === 'admin' ? (
         <>
@@ -73,7 +93,7 @@ const MainAppContent: React.FC = () => {
           <main className="flex-1 w-full max-w-lg mx-auto px-4 pt-3">
             <PageTransition routeKey={currentRoute}>
               {(() => {
-                switch (currentRoute) {
+                switch (currentRoute as string) {
                   case 'home':
                     return <HomeView />;
                   case 'ads':

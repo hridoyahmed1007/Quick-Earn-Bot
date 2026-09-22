@@ -135,6 +135,7 @@ export const AdminProfileSection: React.FC = () => {
       email: {
         title: emailTitle,
         address: emailAddress,
+        link: emailAddress ? `mailto:${emailAddress}` : '',
         isActive: emailActive,
       },
     });
@@ -265,7 +266,7 @@ export const AdminProfileSection: React.FC = () => {
     if (targetIdx < 0 || targetIdx >= list.length) return;
     const [moved] = list.splice(index, 1);
     list.splice(targetIdx, 0, moved);
-    await adminReorderProfileSections(list.map((s) => s.key));
+    await adminReorderProfileSections(list);
   };
 
   return (
@@ -630,7 +631,7 @@ export const AdminProfileSection: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => adminToggleSocialLinkStatus(social.id, !social.isActive)}
+                    onClick={() => adminToggleSocialLinkStatus(social.id)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-colors ${
                       social.isActive
                         ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
@@ -941,7 +942,7 @@ export const AdminProfileSection: React.FC = () => {
 
                   <button
                     onClick={() =>
-                      adminToggleProfileSectionVisibility(sec.key, !sec.isVisible)
+                      adminToggleProfileSectionVisibility(sec.key)
                     }
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold ${
                       sec.isVisible

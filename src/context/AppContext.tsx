@@ -37,6 +37,7 @@ import {
   DailyBonusConfig,
   WithdrawalSettingsConfig,
   WithdrawalRequirementsConfig,
+  ReferralStatus,
 } from '../types';
 import {
   PROFILE_LEVEL_THRESHOLDS,
@@ -106,7 +107,7 @@ interface AppContextType {
   openEarningTab: (tab: EarningTabType) => void;
   isNavVisible: boolean;
   activeAdModal: AdProvider | null;
-  toast: { title: string; body: string; type?: 'success' | 'info' | 'warning' } | null;
+  toast: { title: string; body: string; type?: 'success' | 'info' | 'warning' | 'error' } | null;
 
   // Legacy compatibility
   tasks: any[];
@@ -136,7 +137,7 @@ interface AppContextType {
   cancelWithdrawal: (id: string) => void;
   adminAdjustUserBalance: (amountBdt: number, reason: string) => void;
   adminProcessWithdrawal: (id: string, status: 'completed' | 'rejected', refOrReason?: string) => void;
-  showToast: (title: string, body: string, type?: 'success' | 'info' | 'warning') => void;
+  showToast: (title: string, body?: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
   triggerHaptic: (style?: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error') => void;
 
   // Admin Ads & Task Management
@@ -181,7 +182,7 @@ interface AppContextType {
   adminReferralsList: ReferralRecord[];
   fetchReferralData: () => Promise<void>;
   adminUpdateReferralConfig: (config: Partial<ReferralConfig>) => Promise<boolean>;
-  adminUpdateReferralStatus: (referralId: string, status: 'qualified' | 'rejected' | 'fraud', reason?: string) => Promise<boolean>;
+  adminUpdateReferralStatus: (referralId: string, status: ReferralStatus, reason?: string) => Promise<boolean>;
 
   // Profile Menu Management Admin
   profileConfig: ProfileConfig;
@@ -197,6 +198,12 @@ interface AppContextType {
   adminDeleteProfileFaq: (id: string) => Promise<boolean>;
   adminUpdateProfileSections: (sections: ProfileSectionItem[]) => Promise<boolean>;
   adminResetProfileDefaults: () => Promise<boolean>;
+  adminToggleSocialLinkStatus: (id: string) => Promise<boolean>;
+  adminUpdateProfileAppInfo: (appInfo: any) => Promise<boolean>;
+  adminAddProfileFaq: (faq: Partial<ProfileFaqItem>) => Promise<boolean>;
+  adminUpdateProfileFaq: (id: string, faq: Partial<ProfileFaqItem>) => Promise<boolean>;
+  adminToggleProfileSectionVisibility: (id: string) => Promise<boolean>;
+  adminReorderProfileSections: (sections: ProfileSectionItem[]) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -398,7 +405,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeEarningTab, setActiveEarningTab] = useState<EarningTabType>('ads');
   const [isNavVisible, setIsNavVisible] = useState<boolean>(true);
   const [activeAdModal, setActiveAdModal] = useState<AdProvider | null>(null);
-  const [toast, setToast] = useState<{ title: string; body: string; type?: 'success' | 'info' | 'warning' } | null>(null);
+  const [toast, setToast] = useState<{ title: string; body: string; type?: 'success' | 'info' | 'warning' | 'error' } | null>(null);
   const [activeAchievementDetail, setActiveAchievementDetail] = useState<AchievementItem | null>(null);
   const [levelUpCelebration, setLevelUpCelebration] = useState<{
     fromTier: ProfileTier;
@@ -1065,7 +1072,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [toast]);
 
-  const showToast = (title: string, body: string, type: 'success' | 'info' | 'warning' = 'success') => {
+  const showToast = (title: string, body: string = '', type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     setToast({ title, body, type });
   };
 
@@ -2116,7 +2123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const adminUpdateReferralStatus = async (
     referralId: string,
-    status: 'qualified' | 'rejected' | 'fraud',
+    status: ReferralStatus,
     reason?: string
   ): Promise<boolean> => {
     try {
@@ -2550,6 +2557,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adminDeleteProfileFaq,
         adminUpdateProfileSections,
         adminResetProfileDefaults,
+        adminToggleSocialLinkStatus: adminToggleSocialLink,
+        adminUpdateProfileAppInfo: adminUpdateProfileLegal,
+        adminAddProfileFaq: adminSaveProfileFaq,
+        adminUpdateProfileFaq: async (id: string, faq: Partial<ProfileFaqItem>) => adminSaveProfileFaq({ id, ...faq }),
+        adminToggleProfileSectionVisibility: async (key: string) => {
+          const updated = (profileConfig.sections || []).map(s => s.key === key ? { ...s, isVisible: !s.isVisible } : s);
+          return adminUpdateProfileSections(updated);
+        },
+        adminReorderProfileSections: adminUpdateProfileSections,
       }}
     >
       {children}

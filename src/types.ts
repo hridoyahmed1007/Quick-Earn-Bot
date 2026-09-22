@@ -167,6 +167,7 @@ export interface ChannelTask {
   instructionsBn: string[];
   verificationType: 'bot_api' | 'automatic' | 'manual';
   actionUrl: string;
+  isJoined?: boolean;
   joinedAt?: string;
   displayOrder?: number;
   createdAt?: string;
@@ -548,6 +549,7 @@ export interface SecurityAlert {
 export interface AdminAuditLog {
   id: string;
   adminId: string;
+  adminUser?: string;
   action: string;
   category: 'ads' | 'micro_jobs' | 'channel_tasks' | 'referral' | 'wallet' | 'profile' | 'general';
   targetId: string;
@@ -560,26 +562,31 @@ export interface AdminAuditLog {
 
 // Profile Menu Management Interfaces
 export interface ProfileSupportChannel {
-  enabled: boolean;
+  enabled?: boolean;
+  isActive?: boolean;
   title: string;
   link: string;
-  usernameOrPhone: string;
-  subtitleEn: string;
-  subtitleBn: string;
+  handle?: string;
+  number?: string;
+  address?: string;
+  usernameOrPhone?: string;
+  subtitleEn?: string;
+  subtitleBn?: string;
   badge?: string;
 }
 
 export interface ProfileSupportSettings {
-  titleEn: string;
-  titleBn: string;
-  descEn: string;
-  descBn: string;
-  is24x7Active: boolean;
-  telegram: ProfileSupportChannel;
-  whatsapp: ProfileSupportChannel;
-  facebook: ProfileSupportChannel;
-  updatedAt: string;
-  updatedBy: string;
+  titleEn?: string;
+  titleBn?: string;
+  descEn?: string;
+  descBn?: string;
+  is24x7Active?: boolean;
+  telegram?: ProfileSupportChannel;
+  whatsapp?: ProfileSupportChannel;
+  facebook?: ProfileSupportChannel;
+  email?: ProfileSupportChannel & { address?: string };
+  updatedAt?: string;
+  updatedBy?: string;
 }
 
 export type ProfileSocialPlatform = 'Telegram' | 'WhatsApp' | 'Facebook' | 'YouTube' | 'Instagram' | 'Twitter' | 'TikTok' | 'Website';
@@ -588,6 +595,10 @@ export interface ProfileSocialLink {
   id: string;
   platform: ProfileSocialPlatform;
   displayName: string;
+  titleEn?: string;
+  titleBn?: string;
+  badgeEn?: string;
+  badgeBn?: string;
   handle: string;
   url: string;
   icon: string;
@@ -600,10 +611,12 @@ export interface ProfileSocialLink {
 export interface ProfileAppInfo {
   appName: string;
   version: string;
-  aboutEn: string;
-  aboutBn: string;
+  sloganEn?: string;
+  sloganBn?: string;
+  aboutEn?: string;
+  aboutBn?: string;
   copyrightText: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface ProfileLegalSettings {

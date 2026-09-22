@@ -178,7 +178,7 @@ export const AdminPageView: React.FC = () => {
 
   // Reordering Helpers
   const moveItem = async (type: 'ads' | 'micro_jobs' | 'channel_tasks', index: number, direction: 'up' | 'down') => {
-    let list = type === 'ads' ? [...adProviders] : type === 'micro_jobs' ? [...microJobs] : [...channelTasks];
+    let list: any[] = type === 'ads' ? [...adProviders] : type === 'micro_jobs' ? [...microJobs] : [...channelTasks];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= list.length) return;
 
@@ -639,7 +639,7 @@ export const AdminPageView: React.FC = () => {
                         </div>
 
                         <button
-                          onClick={() => adminToggleAdStatus(item.id, !item.isAvailable)}
+                          onClick={() => adminToggleAdStatus(item.id, item.isAvailable ? 'disabled' : 'available')}
                           className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
                             item.isAvailable
                               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'

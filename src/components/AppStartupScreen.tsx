@@ -30,13 +30,13 @@ export const AppStartupScreen: React.FC<AppStartupScreenProps> = ({ onComplete }
     startTimeRef.current = Date.now();
     hasTriggeredCompleteRef.current = false;
 
-    // Safety timeout: Maximum 700ms, then guaranteed to enter the app
+    // Safety timeout: Maximum 3.5s, then guaranteed to enter the app
     const autoFinishTimer = setTimeout(() => {
       if (!hasTriggeredCompleteRef.current) {
         hasTriggeredCompleteRef.current = true;
         onComplete();
       }
-    }, 700);
+    }, 3500);
 
     try {
       // Step 1: Fast Telegram WebApp handshake
@@ -48,17 +48,27 @@ export const AppStartupScreen: React.FC<AppStartupScreenProps> = ({ onComplete }
         } catch {}
       }
 
-      await new Promise((res) => setTimeout(res, 200));
+      await new Promise((res) => setTimeout(res, 450));
       setPhase('connecting');
-      setProgress(65);
+      setProgress(50);
       triggerHaptic('light');
 
-      await new Promise((res) => setTimeout(res, 180));
+      await new Promise((res) => setTimeout(res, 450));
+      setPhase('verifying');
+      setProgress(75);
+      triggerHaptic('light');
+
+      await new Promise((res) => setTimeout(res, 450));
+      setPhase('preparing');
+      setProgress(90);
+      triggerHaptic('light');
+
+      await new Promise((res) => setTimeout(res, 400));
       setPhase('ready');
       setProgress(100);
       triggerHaptic('success');
 
-      await new Promise((res) => setTimeout(res, 150));
+      await new Promise((res) => setTimeout(res, 350));
 
       if (!hasTriggeredCompleteRef.current) {
         hasTriggeredCompleteRef.current = true;

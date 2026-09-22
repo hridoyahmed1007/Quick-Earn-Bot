@@ -12,8 +12,6 @@ interface WelcomeModalProps {
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) => {
   const { dailyBonus, adProviders, referralConfig, withdrawalSettings } = useApp();
 
-  if (!isOpen) return null;
-
   const safeDailyBonus = Array.isArray(dailyBonus) ? dailyBonus : [];
   const safeAdProviders = Array.isArray(adProviders) ? adProviders : [];
 
@@ -39,21 +37,25 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
 
   return (
     <AnimatePresence>
-      <div 
-        id="welcome-popup-backdrop"
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md select-none overflow-y-auto"
-      >
-        <motion.div
-          id="welcome-popup-container"
-          initial={{ opacity: 0, scale: 0.92, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 10 }}
-          transition={{
-            duration: 0.35,
-            ease: [0.16, 1, 0.3, 1], // Gentle spring curve, no aggressive bounce
+      {isOpen && (
+        <div 
+          id="welcome-popup-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleConfirm();
           }}
-          className="relative w-full max-w-sm my-auto rounded-[24px] bg-[#141416] border border-[#26262B] shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[90vh]"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md select-none overflow-y-auto"
         >
+          <motion.div
+            id="welcome-popup-container"
+            initial={{ opacity: 0, scale: 0.92, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 10 }}
+            transition={{
+              duration: 0.35,
+              ease: [0.16, 1, 0.3, 1], // Gentle spring curve, no aggressive bounce
+            }}
+            className="relative w-full max-w-sm my-auto rounded-[24px] bg-[#141416] border border-[#26262B] shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[90vh]"
+          >
           {/* Subtle Ambient Top Glow */}
           <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-28 bg-[#00E5FF]/15 rounded-full blur-2xl pointer-events-none" />
 
@@ -211,6 +213,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 };

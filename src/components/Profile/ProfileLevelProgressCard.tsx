@@ -78,8 +78,8 @@ export const ProfileLevelProgressCard: React.FC = () => {
         {/* Metric 1: Tasks */}
         <button
           onClick={() => {
-            openEarningTab('tasks');
-            navigateTo('earn');
+            openEarningTab('channel_tasks');
+            navigateTo('tasks');
           }}
           className="group text-left p-2 rounded-xl bg-[#111114]/90 hover:bg-[#18181F] border border-[#232328] hover:border-cyan-500/40 transition-all duration-200"
         >
@@ -106,7 +106,7 @@ export const ProfileLevelProgressCard: React.FC = () => {
         <button
           onClick={() => {
             openEarningTab('ads');
-            navigateTo('earn');
+            navigateTo('ads');
           }}
           className="group text-left p-2 rounded-xl bg-[#111114]/90 hover:bg-[#18181F] border border-[#232328] hover:border-amber-500/40 transition-all duration-200"
         >

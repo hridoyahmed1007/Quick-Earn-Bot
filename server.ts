@@ -8,6 +8,17 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// CORS & Telegram WebApp / Cross-origin support
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-user-id, x-user-username, x-user-fullname, x-user-avatar');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Global shared database models for Ads Menu Management (Admin Control)
 let globalAds = [
   {
@@ -4662,12 +4673,17 @@ app.post('/api/admin/profile/reset-defaults', (req, res) => {
 // --- VITE / STATIC SERVING ---
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+    try {
+      const vitePkg = 'vite';
+      const { createServer: createViteServer } = await import(/* @vite-ignore */ vitePkg);
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn('Vite dev middleware not loaded:', (e as any)?.message);
+    }
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -4681,7 +4697,20 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
+const isMainModule = Boolean(
+  process.argv[1] &&
+  (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.cjs') || process.argv[1].endsWith('server.js'))
+);
+
+const isServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.NOW_REGION ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.IS_SERVERLESS ||
+  !isMainModule
+);
+
+if (isMainModule && !isServerless) {
   startServer();
 }
 

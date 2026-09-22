@@ -265,10 +265,10 @@ export const AdPlayerModal: React.FC = () => {
                 </div>
 
                 <button
-                  disabled={watchState !== 'completed'}
+                  disabled={(watchState as string) !== 'completed'}
                   onClick={handleClaimAndClose}
                   className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-md ${
-                    watchState === 'completed'
+                    (watchState as string) === 'completed'
                       ? 'bg-[#00E5FF] hover:bg-[#70F3FF] text-[#0A0A0B] glow-cyan'
                       : 'bg-[#1F1F22] text-[#636366] border border-[#2A2A2E] cursor-not-allowed'
                   }`}

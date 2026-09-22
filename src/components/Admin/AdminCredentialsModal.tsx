@@ -18,7 +18,7 @@ interface AdminCredentialsModalProps {
   onClose: () => void;
   currentAdminUsername: string;
   onCredentialsChanged: (newUsername: string) => void;
-  showToast: (title: string, description?: string, type?: 'success' | 'error' | 'info') => void;
+  showToast: (title: string, description?: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
 export const AdminCredentialsModal: React.FC<AdminCredentialsModalProps> = ({

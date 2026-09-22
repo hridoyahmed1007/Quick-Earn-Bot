@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
+import { EarningTabType } from '../../../types';
 import { MicroJobsSection } from '../../EarningHub/MicroJobsSection';
 import { ChannelTasksSection } from '../../EarningHub/ChannelTasksSection';
 import { EarningSegmentedNav } from '../../EarningHub/EarningSegmentedNav';
 
 export const TasksView: React.FC = () => {
   const { goBack, language, navigateTo } = useApp();
-  const [activeTab, setActiveTab] = useState<'jobs' | 'channels'>('jobs');
+  const [activeTab, setActiveTab] = useState<EarningTabType>('micro_jobs');
 
   return (
     <div className="space-y-4 pb-28">
@@ -32,7 +33,7 @@ export const TasksView: React.FC = () => {
       {/* Navigation Bar */}
       <EarningSegmentedNav
         activeTab={activeTab}
-        onTabChange={(tab) => {
+        onSelectTab={(tab) => {
           if (tab === 'ads') {
             navigateTo('ads');
           } else {
@@ -42,7 +43,7 @@ export const TasksView: React.FC = () => {
       />
 
       {/* Active Tab View */}
-      {activeTab === 'jobs' ? <MicroJobsSection /> : <ChannelTasksSection />}
+      {activeTab === 'micro_jobs' ? <MicroJobsSection /> : <ChannelTasksSection />}
     </div>
   );
 };

@@ -28,7 +28,7 @@ export const LiveActivityFeed: React.FC = () => {
     id: rec.id,
     userName: 'You (Self)',
     amountBdt: rec.amountBdt,
-    paymentMethod: rec.method || 'bKash',
+    paymentMethod: (rec.method === 'Nagad' || rec.method === 'Rocket') ? rec.method : 'bKash',
     maskedAccount: rec.accountNumber ? `${rec.accountNumber.slice(0, 2)}******${rec.accountNumber.slice(-3)}` : '01******000',
     relativeTime: rec.requestedAt || 'Just now',
   }));
